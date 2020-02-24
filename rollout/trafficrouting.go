@@ -1,10 +1,11 @@
 package rollout
 
 import (
+	"github.com/argo-rollouts/rollout/trafficrouting/nginx"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/argoproj/argo-rollouts/rollout/trafficrouting/istio"
-	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
+	"github.com/argo-rollouts/rollout/trafficrouting/istio"
+	replicasetutil "github.com/argo-rollouts/utils/replicaset"
 )
 
 // TrafficRoutingReconciler common function across all TrafficRouting implementation
@@ -21,6 +22,10 @@ func (c *RolloutController) NewTrafficRoutingReconciler(roCtx rolloutContext) Tr
 	}
 	if rollout.Spec.Strategy.Canary.TrafficRouting.Istio != nil {
 		return istio.NewReconciler(rollout, c.dynamicclientset, c.recorder, c.defaultIstioVersion)
+	}
+
+	if rollout.Spec.Strategy.Canary.TrafficRouting.Nginx != nil {
+		return nginx.NewNginxReconciler(rollout, c.dynamicclientset, c.recorder)
 	}
 	return nil
 }

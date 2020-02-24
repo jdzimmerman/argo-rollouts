@@ -160,6 +160,7 @@ type CanaryStrategy struct {
 type RolloutTrafficRouting struct {
 	// Istio holds Istio specific configuration to route traffic
 	Istio *IstioTrafficRouting `json:"istio,omitempty"`
+	Nginx *NginxTrafficRouting `json:"nginx,omitempty"`
 }
 
 // IstioTrafficRouting configuration for Istio service mesh to enable fine grain configuration
@@ -174,6 +175,12 @@ type IstioVirtualService struct {
 	Name string `json:"name"`
 	// Routes list of routes within VirtualService to edit
 	Routes []string `json:"routes"`
+}
+
+type NginxTrafficRouting struct {
+	Name             string `json:"name"`
+	StableIngress    string `json:"stableIngress"`
+	AnnotationPrefix string `json:"annotationPrefix,omitempty"`
 }
 
 // RolloutExperimentStep defines a template that is used to create a experiment for a step
