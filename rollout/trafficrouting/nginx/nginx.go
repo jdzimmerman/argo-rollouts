@@ -28,7 +28,12 @@ type Reconciler struct {
 }
 
 func (r *Reconciler) Reconcile(desiredWeight int32) error {
+	canarySvc := r.rollout.Spec.Strategy.Canary.CanaryService
+	stableSvc := r.rollout.Spec.Strategy.Canary.StableService
+
 	fmt.Println(desiredWeight)
+	fmt.Println(canarySvc)
+	fmt.Println(stableSvc)
 	return nil
 
 }
@@ -48,9 +53,54 @@ func SetCanaryIngressName(rollout *v1alpha1.Rollout) string {
 	return canaryName
 }
 
-func (r *Reconciler) CreateCanaryIngress()  {
+func (r *Reconciler) CreateCanaryIngress() {
 	stableIngress := GetRolloutIngressName(r.rollout)
 	canaryIngress := SetCanaryIngressName(r.rollout)
 	client := r.client.Resource().Namespace(r.rollout.Namespace)
 	client.Create(canaryIngress)
+
+	fmt.Println(stableIngress, canaryIngress)
 }
+
+/*
+this is the key logic from istio for routing to the specific services
+func (r *Reconciler) generateVirtualServicePatches(httpRoutes []httpRoute, desiredWeight int64) virtualServicePatches {
+	canarySvc := r.rollout.Spec.Strategy.Canary.CanaryService
+	stableSvc := r.rollout.Spec.Strategy.Canary.StableService
+	routes := map[string]bool{}
+	for _, r := range r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.VirtualService.Routes {
+		routes[r] = true
+	}
+
+	patches := virtualServicePatches{}
+	for i := range httpRoutes {
+		route := httpRoutes[i]
+		if !routes[route.Name] {
+			continue
+		}
+		for j := range route.Route {
+			destination := httpRoutes[i].Route[j]
+			host := destination.Destination.Host
+			weight := destination.Weight
+			if host == canarySvc && weight != desiredWeight {
+				patch := virtualServicePatch{
+					routeIndex:       i,
+					destinationIndex: j,
+					weight:           desiredWeight,
+				}
+				patches = append(patches, patch)
+			}
+			if host == stableSvc && weight != 100-desiredWeight {
+				patch := virtualServicePatch{
+					routeIndex:       i,
+					destinationIndex: j,
+					weight:           100 - desiredWeight,
+				}
+				patches = append(patches, patch)
+			}
+		}
+	}
+	return patches
+}
+
+ */
